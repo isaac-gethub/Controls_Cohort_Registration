@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIB Systems LLC — SAP Controls & Compliance Career Programme | Enrollment</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #1F3864;
+    --navy-dark: #162A4A;
+    --teal: #1F7A8C;
+    --amber: #C65911;
+    --cream: #FBFAF6;
+    --lightgrey: #F2F2F2;
+    --red: #B02418;
+    --green: #2E7D32;
+    --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Calibri, Arial, sans-serif;
+    background: var(--lightgrey);
+    color: #222;
+    line-height: 1.5;
+  }
+  .shell { max-width: 760px; margin: 0 auto; padding: 24px 20px 60px; }
+  header.hero {
+    background: var(--navy);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 28px 28px 24px;
+    margin-bottom: 24px;
+  }
+  header.hero .tag { color: #9FC5E8; font-weight: 700; font-size: 13px; letter-spacing: 0.03em; }
+  header.hero h1 { margin: 6px 0 8px; font-size: 26px; line-height: 1.25; }
+  header.hero p { margin: 0; color: #D9E4F5; font-style: italic; font-size: 15px; }
+
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .card h2 {
+    color: var(--teal);
+    font-size: 19px;
+    margin: 0 0 12px;
+    border-bottom: 2px solid var(--lightgrey);
+    padding-bottom: 8px;
+  }
+  .seat-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--cream);
+    border-left: 4px solid var(--amber);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .seat-bar strong { color: var(--navy); font-size: 16px; }
+  .course-option {
+    border: 1px solid #e2e2e2;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .course-option:hover { border-color: var(--teal); background: #F7FBFB; }
+  .course-option input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--teal); flex-shrink: 0; }
+  .course-option .meta { flex: 1; }
+  .course-option .meta .name { font-weight: 700; color: var(--navy); font-size: 15px; }
+  .course-option .meta .weeks { color: var(--amber); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+  .course-option .meta .desc { font-size: 13px; color: #555; margin-top: 3px; }
+
+  .enroll-type-indicator {
+    text-align: center; font-weight: 700; color: var(--teal);
+    padding: 10px; background: #EFF7F8; border-radius: 6px; margin: 14px 0;
+    font-size: 14px; display: none;
+  }
+
+  label.field-label { display: block; font-weight: 700; color: var(--navy); font-size: 13px; margin: 14px 0 5px; }
+  input[type=text], input[type=email], input[type=tel] {
+    width: 100%; padding: 11px 12px; border: 1px solid #ccc; border-radius: 6px;
+    font-size: 15px; font-family: inherit;
+  }
+  input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 2px rgba(31,122,140,0.15); }
+
+  .price-note {
+    background: #FFF7EC; border: 1px solid var(--amber); border-radius: 6px;
+    padding: 12px 14px; font-size: 13px; color: #6b4408; margin: 16px 0; font-style: italic;
+  }
+
+  button.submit-btn {
+    width: 100%; background: var(--amber); color: white; border: none;
+    padding: 14px; border-radius: 6px; font-size: 16px; font-weight: 700;
+    cursor: pointer; margin-top: 18px; transition: background .15s;
+  }
+  button.submit-btn:hover { background: #a84b0d; }
+  button.submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  .msg { padding: 14px 16px; border-radius: 6px; margin-top: 16px; font-size: 14px; display: none; }
+  .msg.success { background: #EAF3E8; border-left: 4px solid var(--green); color: #1e5020; display: block; }
+  .msg.error { background: #FBEAEA; border-left: 4px solid var(--red); color: #7a1810; display: block; }
+
+  footer { text-align: center; font-size: 12px; color: #888; margin-top: 30px; }
+  footer a { color: var(--teal); text-decoration: none; }
+
+  /* Admin view */
+  #adminView { display: none; }
+  .admin-gate { max-width: 360px; margin: 60px auto; }
+  table.roster { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  table.roster th { background: var(--navy); color: white; text-align: left; padding: 8px 10px; }
+  table.roster td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+  table.roster tr:nth-child(even) { background: #fafafa; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge.pending { background: #FFF3CD; color: #8a6510; }
+  .badge.paid { background: #EAF3E8; color: #1e5020; }
+  .badge.refunded { background: #FBEAEA; color: #7a1810; }
+  .badge.cancelled { background: #eee; color: #666; }
+
+  @media (max-width: 600px) {
+    .shell { padding: 14px 12px 40px; }
+    header.hero { padding: 20px 18px; border-radius: 8px; }
+    header.hero h1 { font-size: 21px; }
+    .card { padding: 16px 16px; }
+    .seat-bar { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell" id="publicView">
+  <header class="hero">
+    <div class="tag">TIB SYSTEMS LLC</div>
+    <h1>SAP Controls & Compliance Career Programme — Enrollment</h1>
+    <p>8 weeks. Self-study plus live instructor-led classes. Choose one course, two, or the complete pathway.</p>
+  </header>
+
+  <div class="card">
+    <h2 id="cohortName">Loading cohort details…</h2>
+    <div class="seat-bar" id="seatBar">Checking seat availability…</div>
+
+    <label class="field-label">Which course(s) would you like to enroll in?</label>
+    <div id="courseList"></div>
+    <div class="enroll-type-indicator" id="enrollTypeIndicator"></div>
+
+    <div class="price-note">Pricing: to be confirmed. Our team will follow up by email with pricing and payment instructions after you submit this form.</div>
+
+    <label class="field-label" for="fullName">Full Name</label>
+    <input type="text" id="fullName" placeholder="Your full name">
+
+    <label class="field-label" for="email">Email Address</label>
+    <input type="email" id="email" placeholder="you@example.com">
+
+    <label class="field-label" for="phone">Phone Number (optional)</label>
+    <input type="tel" id="phone" placeholder="+1 555 000 0000">
+
+    <button class="submit-btn" id="submitBtn">Submit Enrollment</button>
+    <div class="msg" id="formMsg"></div>
+  </div>
+
+  <footer>
+    TIB Systems LLC &middot; Questions? Contact your TIB representative &middot; <a href="#admin">Staff login</a>
+  </footer>
+</div>
+
+<div class="shell" id="adminView">
+  <div class="card admin-gate" id="adminGate">
+    <h2>Staff Roster Login</h2>
+    <label class="field-label" for="passcode">Passcode</label>
+    <input type="text" id="passcode" placeholder="Enter passcode">
+    <button class="submit-btn" id="adminSubmit">View Roster</button>
+    <div class="msg" id="adminMsg"></div>
+  </div>
+
+  <div class="card" id="rosterCard" style="display:none;">
+    <h2>September 2026 Cohort — Roster</h2>
+    <div class="seat-bar" id="adminSeatBar"></div>
+    <table class="roster" id="rosterTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Phone</th><th>Course(s)</th><th>Type</th><th>Payment</th><th>Enrolled</th></tr>
+      </thead>
+      <tbody id="rosterBody"></tbody>
+    </table>
+  </div>
+
+  <footer><a href="#">&larr; Back to enrollment form</a></footer>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://blfgwysgekfqhcafofhe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_ThLetpd4hj49fjce-kXoFA_v4ghwIqV";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let currentBatch = null;
+  let selectedCourses = new Set();
+
+  const courseDescriptions = {
+    no_access: "Judgment-building through 64 real-world control scenarios. No live SAP access required.",
+    evidence_capture: "Hands-on evidence production in a live SAP sandbox across 93 sessions.",
+    mastery: "Full SOX 404 methodology, live SAP GRC practicum, and career-readiness training.",
+  };
+
+  async function loadCohort() {
+    const { data: batches, error } = await sb.from('cohort_batches').select('*').eq('status', 'open').order('start_date', { ascending: true }).limit(1);
+    if (error || !batches || batches.length === 0) {
+      document.getElementById('cohortName').textContent = 'No cohort is currently open for enrollment.';
+      document.getElementById('seatBar').textContent = 'Please check back soon or contact us directly.';
+      return;
+    }
+    currentBatch = batches[0];
+    document.getElementById('cohortName').textContent = currentBatch.name + ' — ' + formatDate(currentBatch.start_date) + ' to ' + formatDate(currentBatch.end_date);
+
+    const { data: courses } = await sb.from('cohort_courses').select('*').order('sort_order', { ascending: true });
+    renderCourses(courses || []);
+    await refreshAvailability();
+  }
+
+  function formatDate(d) {
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function renderCourses(courses) {
+    const list = document.getElementById('courseList');
+    list.innerHTML = '';
+    courses.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'course-option';
+      div.innerHTML = `
+        <input type="checkbox" value="${c.id}" id="course_${c.id}">
+        <div class="meta">
+          <div class="name">${c.name}</div>
+          <div class="weeks">Weeks ${c.week_start}${c.week_end > c.week_start ? '–' + c.week_end : ''}</div>
+          <div class="desc">${courseDescriptions[c.id] || ''}</div>
+        </div>`;
+      div.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'INPUT') {
+          const cb = div.querySelector('input');
+          cb.checked = !cb.checked;
+        }
+        toggleCourse(c.id, div.querySelector('input').checked);
+      });
+      list.appendChild(div);
+    });
+  }
+
+  function toggleCourse(id, checked) {
+    if (checked) selectedCourses.add(id); else selectedCourses.delete(id);
+    const indicator = document.getElementById('enrollTypeIndicator');
+    const n = selectedCourses.size;
+    if (n === 0) { indicator.style.display = 'none'; return; }
+    const labels = { 1: 'Single Course', 2: 'Two Courses', 3: 'Complete Pathway (Bundle)' };
+    indicator.textContent = (labels[n] || labels[3]) + ' selected — Training Library included free';
+    indicator.style.display = 'block';
+  }
+
+  async function refreshAvailability() {
+    if (!currentBatch) return;
+    const { data, error } = await sb.rpc('get_cohort_availability', { p_batch_id: currentBatch.id });
+    const bar = document.getElementById('seatBar');
+    if (error || !data || !data.success) {
+      bar.textContent = 'Unable to load seat availability right now.';
+      return;
+    }
+    if (data.remaining <= 0) {
+      bar.innerHTML = `<strong>This cohort is full.</strong> Contact us to join the waitlist or the next cohort.`;
+      document.getElementById('submitBtn').disabled = true;
+    } else {
+      bar.innerHTML = `<span>Seats remaining</span> <strong>${data.remaining} of ${data.capacity}</strong>`;
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const fullName = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const msg = document.getElementById('formMsg');
+    msg.className = 'msg'; msg.style.display = 'none';
+
+    if (!currentBatch) return;
+    if (selectedCourses.size === 0) {
+      msg.className = 'msg error'; msg.textContent = 'Please select at least one course.'; return;
+    }
+    if (!fullName) { msg.className = 'msg error'; msg.textContent = 'Please enter your full name.'; return; }
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.className = 'msg error'; msg.textContent = 'Please enter a valid email address.'; return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    const { data, error } = await sb.rpc('enroll_trainee', {
+      p_full_name: fullName,
+      p_email: email,
+      p_phone: phone || null,
+      p_batch_id: currentBatch.id,
+      p_courses: Array.from(selectedCourses),
+    });
+
+    btn.disabled = false; btn.textContent = 'Submit Enrollment';
+
+    if (error || !data || !data.success) {
+      msg.className = 'msg error';
+      msg.textContent = (data && data.message) ? data.message : 'Something went wrong. Please try again or contact us directly.';
+      return;
+    }
+    msg.className = 'msg success';
+    msg.textContent = data.message;
+    await refreshAvailability();
+  });
+
+  // ---------- Admin view ----------
+  function showAdmin() {
+    document.getElementById('publicView').style.display = 'none';
+    document.getElementById('adminView').style.display = 'block';
+  }
+  function showPublic() {
+    document.getElementById('adminView').style.display = 'none';
+    document.getElementById('publicView').style.display = 'block';
+  }
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#admin') showAdmin(); else showPublic();
+  });
+  if (window.location.hash === '#admin') showAdmin();
+
+  document.getElementById('adminSubmit').addEventListener('click', async () => {
+    const passcode = document.getElementById('passcode').value;
+    const msg = document.getElementById('adminMsg');
+    msg.className = 'msg'; msg.style.display = 'none';
+
+    if (!currentBatch) {
+      const { data: batches } = await sb.from('cohort_batches').select('*').eq('status', 'open').limit(1);
+      currentBatch = batches && batches[0];
+    }
+    if (!currentBatch) { msg.className = 'msg error'; msg.textContent = 'No open cohort found.'; return; }
+
+    const { data, error } = await sb.rpc('get_cohort_roster', { p_batch_id: currentBatch.id, p_passcode: passcode });
+    if (error || !data || !data.success) {
+      msg.className = 'msg error';
+      msg.textContent = (data && data.message) ? data.message : 'Unable to load roster.';
+      return;
+    }
+
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('rosterCard').style.display = 'block';
+
+    const avail = await sb.rpc('get_cohort_availability', { p_batch_id: currentBatch.id });
+    if (avail.data && avail.data.success) {
+      document.getElementById('adminSeatBar').innerHTML = `<span>Enrolled</span> <strong>${avail.data.taken} of ${avail.data.capacity}</strong>`;
+    }
+
+    const tbody = document.getElementById('rosterBody');
+    tbody.innerHTML = '';
+    const courseNames = { no_access: 'No-Access Track', evidence_capture: 'Evidence Capture', mastery: 'Mastery Console' };
+    data.roster.forEach(r => {
+      const tr = document.createElement('tr');
+      const courses = (r.enrolled_courses || []).map(c => courseNames[c] || c).join(', ');
+      const enrolledDate = new Date(r.enrolled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      tr.innerHTML = `
+        <td>${escapeHtml(r.full_name)}</td>
+        <td>${escapeHtml(r.email)}</td>
+        <td>${escapeHtml(r.phone || '—')}</td>
+        <td>${escapeHtml(courses)}</td>
+        <td>${escapeHtml(r.enrollment_type)}</td>
+        <td><span class="badge ${r.payment_status}">${escapeHtml(r.payment_status)}</span></td>
+        <td>${enrolledDate}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  loadCohort();
+</script>
+
+</body>
+</html>
